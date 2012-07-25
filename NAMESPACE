@@ -1,0 +1,17 @@
+useDynLib(PlayerRatings)
+
+export(elo,
+       fide,
+       glicko,
+       steph,
+       metrics,
+       kfide,
+       krating,
+       kgames)
+
+S3method(print, rating)
+S3method(summary, rating)
+S3method(predict, rating)
+S3method(plot, rating)
+S3method(hist, rating)
+

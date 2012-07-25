@@ -1,0 +1,222 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amssymb}
+
+\pagestyle{plain}
+\setlength{\parindent}{0in}
+\setlength{\parskip}{1.5ex plus 0.5ex minus 0.5ex}
+\setlength{\oddsidemargin}{0in}
+\setlength{\topmargin}{-0.5in}
+\setlength{\textwidth}{6.3in}
+\setlength{\textheight}{9.8in}
+
+%\VignetteIndexEntry{Rating Football Teams}
+
+\begin{document}
+
+\title{Rating Australian Rules Football Teams \\ With The \textbf{PlayerRatings} Package}
+\author{Alec Stephenson}
+\maketitle
+
+\begin{center}
+\LARGE 
+\textbf{Summary} \\
+\end{center}
+\normalsize
+\vspace{0.5cm}
+This vignette presents a short example of the use of \textbf{PlayerRatings}, using a small dataset to demonstrate rating Australian football teams and predicting the winner of future games based on those ratings. A second more detailed analysis using a large dataset of chess matches is given in the file \texttt{doc/ChessRatings.pdf}.
+\normalsize
+
+\section{Functions and Datasets}
+
+The \textbf{PlayerRatings} package implements iterative updating systems for rating players (i.e.\ individuals or teams) in two-player games. These methods are fast and surprisingly accurate. The idea is that given games played in time period $t$, the ratings can be updated using only the information about the status of the system at the end of time period $t-1$, so that all games before $t$ can be ignored. The ratings can then be used to predict the result of games at time $t+1$. Comparing the game predictions with the actual results gives a method of evaluating the accuracy of the ratings as an estimate of a player's true skill. 
+
+The result of a game is considered to be a value in the interval $[0,1]$. For the football data, we only use information on wins, draws and losses, so a value of one represents a win for the home team, a value of zero represents a win for the away team, and a value of one half represents a draw. The status of the system is typically a small number of features, such as player ratings, player rating (standard) deviations, and the number of games played. The more computationally intensive (and often slightly more accurate) approaches of using the full gaming history via a time decay weighting function is not considered here.
+
+The functions \texttt{elo} and \texttt{fide} implement the Elo system (Elo, 1978), the function \texttt{glicko} implements the Glicko system (Glickman, 1999), and the function \texttt{steph} implements the Stephenson system as detailed in the appendix of \texttt{doc/ChessRatings.pdf}. We only use the \texttt{steph} function in this vignette.
+
+
+\section{Modelling and Prediction}
+
+The \texttt{aflodds} dataset includes the results of Australian football games played from 26th March 2009 until 24th June 2012. We use the 2009 and 2010 games for our training data, the 2011 games for our test data and the 2012 data (which represents only the first half of the 2012 season) as our validation data. For the game results we will only use win, loss or draw information, ignoring the size of any victory.
+
+<<>>=
+library(PlayerRatings)
+afl <- aflodds[,c(2,3,4,7)]
+train <- afl[afl$Week < 100,]
+test <- afl[afl$Week >= 100 & afl$Week < 150,]
+valid <- afl[afl$Week >= 150,]
+head(train,12)
+@
+
+All modelling functions in the package can be used to update player ratings over several time periods, or over individual time periods. For example, the following code uses \texttt{steph} to iteratively update the team ratings once every round in the \texttt{train} data. The state of the system is contained in the \texttt{ratings} component of the returned object, which can then be passed back into the function for subsequent updates.
+
+<<>>=
+sobj <- steph(train[train$Week==1,])
+for(i in 2:80) sobj <- steph(train[train$Week==i,], sobj$ratings)
+@ 
+
+More simply, we can call the function once to perform the same task.
+ 
+<<>>=
+sobj <- steph(train, history = TRUE)
+sobj
+@ 
+
+In either case, the resulting \texttt{sobj} object is identical. It gives the current (i.e.\ the end of 2010) rating for all 16 teams, and also gives a deviation parameter, which is an assessment of the accuracy of the rating. The deviation parameters are similar since all teams play roughly the same number of games. The lag parameter shows the number of weeks since each team has played; the two zero lags are associated with the two teams that played in the grand final of 2010. Unusually, the grand final of 2010 was drawn and was replayed the following week, and therefore no team has a lag value of one.
+
+The following code uses the \texttt{plot} function to plot traces of the ratings across the 2009-2010 period for all 16 teams. We begin the period with no information, and therefore initially the rating changes are large. As the system learns about the teams the rating traces begin to stabilize. Flat lines denote the periods of inactivity that occur for teams not involved in the finals series, which takes place following the regular season.
+
+<<label=stabilize>>=
+plot(sobj, npl=16)
+abline(v=c(27,55),lty=2,lwd=2,col="grey")
+text(c(14,42),c(2500,2500),c("2009","2010"),cex=1.5)
+@
+
+\begin{figure}[ht]
+\begin{center}
+<<fig=TRUE, echo=FALSE>>=
+<<stabilize>>
+@
+\end{center}
+\vspace{-1cm}
+\caption{Plots of ratings traces for the 16 teams during 2009-2010, beginning with no information.}
+\label{inffig}
+\end{figure}
+
+The \texttt{predict} function gives predictions of future matches, expressed as a value in the interval $[0,1]$. In this vignette we use the argument \texttt{thresh} to instead produce binary values representing the predicted winner. This example predicts the results of round one in 2011 and compares the predictions to the actual outcomes. A new team was introduced in 2011; by default the prediction of matches involving new teams (less than 15 games) will be missing. We override this behaviour using the argument \texttt{trat}, which sets the parameters of new teams\footnote{The new team did not play in round one and therefore in this particular case the argument makes no difference to the output.} for prediction purposes.
+
+<<>>=
+test1 <- test[test$Week==min(test$Week),]
+pred <- predict(sobj, test1, trat = c(1900,300), thresh = 0.5)
+cbind(test1, Predict = pred)
+@
+
+We now combine the above code snippets in order to predict all games in the test set. We first run the system on the training data, and then loop through each round of the test set.
+
+<<>>=
+sobj <- steph(train, init = c(2200,300), cval = 8, 
+  hval = 8, lambda = 5)
+pred <- NULL
+for(i in unique(test$Week)) {
+  testi <- test[test$Week == i,]
+  predi <- predict(sobj, testi, trat = c(1900,300), gamma = 30, 
+    thresh = 0.5)
+  pred <- c(pred, predi)
+  sobj <- steph(testi, sobj$ratings, init = c(2200,300), cval = 8, 
+    hval = 8, lambda = 5)
+}
+table(Result=test$Score, Predictions=pred)
+@
+
+We now make a couple of adjustments to the above. Firstly, we better account for new teams entering the system. In Australian football, the two new teams introduced in 2011 and 2012 were largely made up of younger players and were expected to me much weaker. To account for this, we create our own starting object \texttt{st0} to initialize the system, allowing the \texttt{init} argument to apply to the new teams only, and hence allowing us to account for this expected weakness. 
+
+Secondly, we focus on the \texttt{gamma} argument to \texttt{predict}, which accounts for the home team advantage. In Australian football teams are often from the same location or share the same ground, in which case the home advantage is likely to be zero. We can account for this, with a little work, by passing a vector to gamma. We first define a helper function which returns a logical vector to indicate whether the away team is travelling.
+
+<<>>=
+trav <- function(dat) {
+  teams <- sort(unique(afl$HomeTeam))
+  locs <- c("Ade","Bri","Mel","Mel","Mel","Per","Gel","Bri","Syd",
+    "Mel","Mel","Mel","Ade","Mel","Mel","Syd","Per","Mel")
+  (locs[factor(dat$HomeTeam,levels=teams)] 
+    != locs[factor(dat$AwayTeam,levels=teams)])
+}
+@  
+
+In the code below, we multiply our original \texttt{gamma} value by \texttt{trav(testi)} in order to specify a zero home advantage when the away team does not travel.
+
+<<>>=
+st0 <- data.frame(Player=sort(unique(train$HomeTeam)), Rating=2200, 
+  Deviation=300, stringsAsFactors=FALSE)
+sobj <- steph(train, st0, init = c(1900,300), cval = 8, 
+  hval = 8, lambda = 5)
+pred <- NULL
+for(i in unique(test$Week)) {
+  testi <- test[test$Week == i,]
+  predi <- predict(sobj, testi, trat = c(1900,300), 
+    gamma = 30*trav(testi), thresh = 0.5)
+  pred <- c(pred, predi)
+  sobj <- steph(testi, sobj$ratings, init = c(1900,300), cval = 8, 
+    hval = 8, lambda = 5)
+}
+rp <- table(Result=test$Score, Predictions=pred)
+rp
+round(100*(rp[1,2]+rp[nrow(rp),1])/sum(rp), 2)
+@
+
+The mis-classification percentage as given above (which counts draws as correctly classified) may be overly optimistic since we roughly chose our parameters to be optimal over the test data\footnote{The football dataset is much smaller and contains far less information than the chess dataset, and therefore different parameter combinations often yield similar predictions.}. We therefore combine our training and test datasets to predict results on the validation data using the same parameters. In other words, we use the 2009-2011 results to predict the results in the first half of the 2012 season.
+
+<<>>=
+st0 <- data.frame(Player=sort(unique(train$HomeTeam)), Rating=2200, 
+  Deviation=300, stringsAsFactors=FALSE)
+sobj <- steph(rbind(train,test), st0, init = c(1900,300), cval = 8, 
+  hval = 8, lambda = 5)
+pred <- NULL
+for(i in unique(valid$Week)) {
+  testi <- valid[valid$Week == i,]
+  predi <- predict(sobj, testi, trat = c(1900,300), 
+    gamma = 30*trav(testi), thresh = 0.5)
+  pred <- c(pred, predi)
+  sobj <- steph(testi, sobj$ratings, init = c(1900,300), cval = 8, 
+    hval = 8, lambda = 5)
+}
+rp <- table(Result=valid$Score, Predictions=pred)
+rp
+round(100*(rp[1,2]+rp[nrow(rp),1])/sum(rp), 2)
+sobj
+@
+
+The code takes less than one-tenth of one second on my machine. We correctly predict $72.2\%$ of the game results in the first half of 2012. We show above the current ratings as of 24th June 2012. We see that the two new teams (the lowest rated) have larger deviation values because they have played less games.
+
+We finish by showing plots of the rating traces for the 16 established teams from mid-2010 to mid-2012. The rating trace plots require the full history of the process to be retained, which requires re-running the updates with the argument \texttt{history} set to \texttt{TRUE}. The current top eight teams are plotted first, with the remainder plotted second.
+
+<<>>=
+sobj <- steph(rbind(train,test,valid), st0, init = c(1900,300), cval = 8, 
+  hval = 8, lambda = 5, history = TRUE)
+p1 <- sobj$ratings[1:8,1]; p2 <- sobj$ratings[9:16,1]
+@
+<<label=ratings1>>=
+plot(sobj, t0 = 40, players = p1, ylim = c(2050,2350),lwd = 2)
+abline(v=c(55,83),lty=2,lwd=2,col="grey")
+legend(70,2160,p1,lty=1:5,col=1:6,lwd=3,cex=0.8)
+text(c(47,70,90),rep(2320,3),c("2010","2011","2012"),cex=1.5)
+@
+<<label=ratings2>>=
+plot(sobj, t0 = 40, players = p2, ylim = c(2050,2350),lwd = 2)
+abline(v=c(55,83),lty=2,lwd=2,col="grey")
+legend(68,2350,p2,lty=1:5,col=1:6,lwd=3,cex=0.8)
+text(c(47,70,90),rep(2070,3),c("2010","2011","2012"),cex=1.5)
+@
+
+\begin{figure}[ht]
+\begin{center}
+<<fig=TRUE, echo=FALSE>>=
+<<ratings1>>
+@
+\end{center}
+\vspace{-1cm}
+\caption{Plots of ratings traces for eight football teams from mid-2010 to mid-2012.}
+\end{figure}
+
+\begin{figure}[ht]
+\begin{center}
+<<fig=TRUE, echo=FALSE>>=
+<<ratings2>>
+@
+\end{center}
+\vspace{-1cm}
+\caption{Plots of ratings traces for eight football teams during mid-2010 to mid-2012.}
+\end{figure}
+
+\section*{Bibliography}
+
+Elo, A. (1978) \textit{The Rating of Chessplayers, Past and Present}. Arco. ISBN 0-668-04721-6
+
+Glickman, M. E. (1999) Parameter estimation in large dynamic paired comparison experiments. \textit{Applied Statistics}, \textbf{48}, 377--394. 
+
+\end{document}
+
+
+
+
+
+
