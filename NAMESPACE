@@ -15,3 +15,5 @@ S3method(predict, rating)
 S3method(plot, rating)
 S3method(hist, rating)
 
+importFrom("graphics", "hist", "lines", "matplot", "par", "plot")
+

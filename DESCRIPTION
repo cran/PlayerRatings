@@ -1,16 +1,17 @@
 Package: PlayerRatings
-Version: 1.0-0
-Date: 2012-07-25
-Title: Dynamic Updating Methods For Player Ratings Estimation
+Version: 1.0-1
+Date: 2016-01-03
+Title: Dynamic Updating Methods for Player Ratings Estimation
 Author: Alec Stephenson and Jeff Sonas.
 Maintainer: Alec Stephenson <alec_stephenson@hotmail.com>
-Description: This package implements schemes for estimating player or
-        team skill based on dynamic updating. Implemented methods
-        include Elo, Glicko and Stephenson. Contains pdf documentation
-        of a reproducible analysis using approximately one million
-        chess matches.
+Description: Implements schemes for estimating player or 
+  team skill based on dynamic updating. Implemented methods include 
+  Elo, Glicko and Stephenson. Contains pdf documentation of a 
+  reproducible analysis using approximately two million chess 
+  matches.
 LazyData: yes
 License: GPL-3
-Packaged: 2012-07-25 06:54:25 UTC; ste6an
+NeedsCompilation: yes
+Packaged: 2016-01-04 06:06:19 UTC; ste6an
 Repository: CRAN
-Date/Publication: 2012-07-26 05:34:46
+Date/Publication: 2016-01-04 11:05:15

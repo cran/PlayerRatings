@@ -10,9 +10,11 @@
 \setlength{\textheight}{9.8in}
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
 \title{Comparing Predictive Performance Of Chess Ratings \\ With The \textbf{PlayerRatings} Package}
 \author{Alec Stephenson}
+\date{July 24, 2012}
 \maketitle
 
 \begin{center}
@@ -21,7 +23,9 @@
 \end{center}
 \normalsize
 \vspace{0.5cm}
-This document presents an example of the use of \textbf{PlayerRatings}, using a large dataset to analyse different methods for rating chess players. The analysis shows that, in terms of predictive performance, the Elo system is outperformed by both the Glicko and Stephenson systems. The analysis also suggests that the K factors used in the current FIDE (World Chess Federation) implementation of the Elo system are smaller than what would be needed for optimum predictive performance. This document and the corresponding analysis can be reproduced using the sweave file doc/sweave/ChessRatings.Rnw by installing the package and calling \texttt{Sweave("ChessRatings.Rnw")}.
+This document presents an example of the use of \textbf{PlayerRatings}, using a large dataset to analyse different methods for rating chess players. The analysis shows that, in terms of predictive performance, the Elo system is outperformed by both the Glicko and Stephenson systems. The analysis also suggests that the K factors used in the current FIDE (World Chess Federation) implementation of the Elo system are smaller than what would be needed for optimum predictive performance. 
+
+This pdf document is located in the file \texttt{doc/ChessRatings.pdf} and the corresponding sweave file is located at \texttt{doc/sweave/ChessRatings.Rnw}. The sweave file can be converted to a latex file by calling \texttt{Sweave(file)}, where \texttt{file} is the filename \texttt{system.file("doc/sweave/ChessRatings.Rnw", package = "PlayerRatings")}. This will run all the code in this document and will therefore download about 20 MB of data. The latex file and corresponding pdf figures will then be located in the working directory.
 \normalsize
 
 \section{Functions and Datasets}
