@@ -35,12 +35,12 @@
 	if(!("Loss" %in% names(status))) status <- cbind(status, Loss = 0)
     if(!("Lag" %in% names(status))) status <- cbind(status, Lag = 0)
     status <- rbind(status[,c("Player","Rating","Games","Win","Draw","Loss","Lag")], npstatus)
-    rinit <- status[,2]
-    ngames <- status[,3]
-    nwin <- status[,4]
-    ndraw <- status[,5]
-    nloss <- status[,6]
-    nlag <- status[,7]
+    rinit <- status[[2]]
+    ngames <- status[[3]]
+    nwin <- status[[4]]
+    ndraw <- status[[5]]
+    nloss <- status[[6]]
+    nlag <- status[[7]]
     names(rinit) <- names(ngames) <- status$Player
   }
   else {
@@ -162,14 +162,14 @@
     if(!("Elite" %in% names(status))) status <- cbind(status, Elite = as.numeric(status$Player >= 2400))
     if(!("Opponent" %in% names(status))) status <- cbind(status, Opponent = status$Rating)
     status <- rbind(status[,c("Player","Rating","Games","Win","Draw","Loss","Lag","Elite","Opponent")], npstatus)
-    rinit <- status[,2]
-    ngames <- status[,3]
-    nwin <- status[,4]
-    ndraw <- status[,5]
-    nloss <- status[,6]
-    nlag <- status[,7]
-    elite <- status[,8]
-    opponent <- status[,9]
+    rinit <- status[[2]]
+    ngames <- status[[3]]
+    nwin <- status[[4]]
+    ndraw <- status[[5]]
+    nloss <- status[[6]]
+    nlag <- status[[7]]
+    elite <- status[[8]]
+    opponent <- status[[9]]
     names(rinit) <- names(ngames) <- status$Player
   }
   else {
@@ -305,13 +305,13 @@
 	if(!("Loss" %in% names(status))) status <- cbind(status, Loss = 0)
     if(!("Lag" %in% names(status))) status <- cbind(status, Lag = 0)
     status <- rbind(status[,c("Player","Rating","Deviation","Games","Win","Draw","Loss","Lag")], npstatus)
-    rinit <- status[,2]
-    dinit <- status[,3]
-    ngames <- status[,4]
-    nwin <- status[,5]
-    ndraw <- status[,6]
-    nloss <- status[,7]
-    nlag <- status[,8]
+    rinit <- status[[2]]
+    dinit <- status[[3]]
+    ngames <- status[[4]]
+    nwin <- status[[5]]
+    ndraw <- status[[6]]
+    nloss <- status[[7]]
+    nlag <- status[[8]]
     names(rinit) <- names(dinit) <- names(ngames) <- status$Player
   }
   else {
@@ -444,13 +444,13 @@
 	if(!("Loss" %in% names(status))) status <- cbind(status, Loss = 0)
     if(!("Lag" %in% names(status))) status <- cbind(status, Lag = 0)
     status <- rbind(status[,c("Player","Rating","Deviation","Games","Win","Draw","Loss","Lag")], npstatus)
-    rinit <- status[,2]
-    dinit <- status[,3]
-    ngames <- status[,4]
-    nwin <- status[,5]
-    ndraw <- status[,6]
-    nloss <- status[,7]
-    nlag <- status[,8]
+    rinit <- status[[2]]
+    dinit <- status[[3]]
+    ngames <- status[[4]]
+    nwin <- status[[5]]
+    ndraw <- status[[6]]
+    nloss <- status[[7]]
+    nlag <- status[[8]]
     names(rinit) <- names(dinit) <- names(ngames) <- status$Player
   }
   else {
@@ -647,8 +647,8 @@
 {
   if(nrow(newdata) == 0) stop("'newdata' must have non-zero rows")
   obj <- object$ratings
-  wmat <- match(newdata[,2], obj$Player)
-  bmat <- match(newdata[,3], obj$Player)
+  wmat <- match(newdata[[2]], obj$Player)
+  bmat <- match(newdata[[3]], obj$Player)
 
   if(!is.null(trat)) obj$Rating[obj$Games < tng] <- trat[1]
   else is.na(obj$Rating[obj$Games < tng]) <- TRUE

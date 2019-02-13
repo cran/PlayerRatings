@@ -1,11 +1,11 @@
-ee9b25a85f39e70404a7d7a49b20a164 *DESCRIPTION
-a325e727236670aa53fbc530f4f1dcc8 *NAMESPACE
-1f26fec8d77edc6569e0b00f6ecaab46 *R/ratings.R
-a139a3d335d1c3e7c3911caf9dbf13e5 *build/vignette.rds
+45268e879ffed0da481e6f1dec59cb2a *DESCRIPTION
+d1a14e67542e9007ee365aea3cd95db0 *NAMESPACE
+646c5389f774eda3d66c5c8c8e805d79 *R/ratings.R
+176d2153febc81705bdb225a3653b27f *build/vignette.rds
 fe523826fbc3bdcdd924b2abd234912a *data/aflodds.rda
 6af929dcb7cb01713c833650150a2b52 *inst/doc/AFLRatings.R
 22461e626b0265257f94c498a8c01c11 *inst/doc/AFLRatings.Rnw
-c6020df507439ff75531d7e9b6051184 *inst/doc/AFLRatings.pdf
+529277c31a282769f4a20484da367d76 *inst/doc/AFLRatings.pdf
 63899a076795ea63ba1de1158a93bf65 *inst/doc/ChessRatings.pdf
 55300069dec6e2a77aff46adb591614c *inst/doc/MathSport.pdf
 e8656f8915847dadc824b93dbe40f332 *inst/doc/MathSport.txt
@@ -22,5 +22,6 @@ da44081e341b735d209bf922ac7956c9 *man/metrics.Rd
 a381a27d3e9042731f57aad31f0d9256 *man/plot.rating.Rd
 10d3be4106f7e6054cde0bde079e286f *man/predict.rating.Rd
 04cb7bb690e68acc492fb95b864764ad *man/steph.Rd
+0ad768a1f1ac3d09fff867f8fe658508 *src/PlayerRatings_init.c
 70ceeb40d061e5e767d43c5c911c892d *src/ratings.c
 22461e626b0265257f94c498a8c01c11 *vignettes/AFLRatings.Rnw
