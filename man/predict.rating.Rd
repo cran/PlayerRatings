@@ -24,10 +24,12 @@
     either player is below this value, then either the prediction
     will be a missing value, or the prediction will be based on
     \code{trat}.}
-  \item{trat}{Either a single number or a vector of length two,
-    giving the rating and deviation parameters to be used for 
-    players who have played less than \code{tng} games. If 
-    \code{NULL} then these predictions will be missing.}
+  \item{trat}{A single number (for Elo), or a vector of length two
+    (for Glicko or Glicko-2 or Stephenson) giving the rating and 
+    deviation parameters to be used for players who have played 
+    less than \code{tng} games. If \code{NULL} then these 
+    predictions will be missing. The volatility parameter in 
+    Glicko-2 is not needed for predictions.}
   \item{gamma}{A player one advantage parameter; either a single
     value or a numeric vector equal to the number of rows in 
 	\code{newdata}. Positive values favour player one, while 

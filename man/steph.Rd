@@ -10,10 +10,11 @@
 }
 \usage{
 steph(x, status = NULL, init = c(2200,300), gamma = 0, cval = 10, 
-  hval = 10, bval = 0, lambda = 2, history = FALSE, sort = TRUE, \dots)
+  hval = 10, bval = 0, lambda = 2, history = FALSE, sort = TRUE, 
+  rdmax = 350, \dots)
 }
 \arguments{
-  \item{x}{A dataframe containing four variables: (1) a numeric
+  \item{x}{A data frame containing four variables: (1) a numeric
     vector denoting the time period in which the game took place
     (2) a numeric or character identifier for player one (3)
     a numeric or character identifier for player two and (4)
@@ -27,11 +28,12 @@ steph(x, status = NULL, init = c(2200,300), gamma = 0, cval = 10,
     \code{Deviation}, and optionally \code{Games}, \code{Win}, 
 	\code{Draw}, \code{Loss} and \code{Lag}, which are set to zero 
     if not given.}
-  \item{init}{The rating vector at which to intialize a new player 
+  \item{init}{The rating vector at which to initialize a new player 
     not appearing in \code{status}. Must be a vector of length two
     giving the initial rating and initial deviation respectively. 
     If different initializations for different players are 
-    required, this can be done using \code{status}.}
+    required, this can be done using \code{status}. The initial
+	deviation cannot be greater than \code{rdmax}.}
   \item{gamma}{A player one advantage parameter; either a single
     value or a numeric vector equal to the number of rows in 
 	\code{x}. Positive values favour player one, while negative 
@@ -58,6 +60,7 @@ steph(x, status = NULL, init = c(2200,300), gamma = 0, cval = 10,
     period in the component \code{history} of the returned list.}
   \item{sort}{If \code{TRUE} sort the results by rating (highest
     to lowest). If \code{FALSE} sort the results by player.}
+  \item{rdmax}{The maximum value allowed for the rating deviation.}
   \item{\dots}{Not used.}
 }
 \details{
@@ -84,7 +87,7 @@ steph(x, status = NULL, init = c(2200,300), gamma = 0, cval = 10,
     since the player last played a game. This is equal to zero
     for players who played in the latest time period, and is
     also zero for players who have not yet played any games.}
-  \item{history}{A three dimentional array, or \code{NULL} if 
+  \item{history}{A three dimensional array, or \code{NULL} if 
     \code{history} is \code{FALSE}. The row dimension is the 
     players, the column dimension is the time periods. The 
     third dimension gives different parameters.}
@@ -96,6 +99,10 @@ steph(x, status = NULL, init = c(2200,300), gamma = 0, cval = 10,
   \item{type}{The character string \code{"Stephenson"}.}
 }
 \references{
+  Glickman, M.E. (1999) 
+  Parameter estimation in large dynamic paired comparison experiments. 
+  J. R. Stat. Soc. Ser. C: Applied Statistics, 48(3), 377-394.
+  
   Glickman, M.E. (2001) 
   Dynamic paired comparison models with stochastic variances. 
   Journal of Applied Statistics, 28, 673-689.

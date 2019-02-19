@@ -1,15 +1,17 @@
-\name{glicko}
-\alias{glicko}
-\title{The Glicko Rating System}
+\name{glicko2}
+\alias{glicko2}
+\title{The Glicko-2 Rating System}
 \description{
-  Implements the Glicko rating system for estimating the relative 
+  Implements the Glicko-2 rating system for estimating the relative 
   skill level of players in two-player games such as chess. It
-  extends the Elo method by including a deviation parameter for
-  each player, representing uncertainty on the rating.   
+  extends the Glicko method by including a volatility parameter for
+  each player, representing the degree of expected fluctuation in 
+  the rating. Volatility is therefore a measure of consistency of
+  performance.  
 }
 \usage{
-glicko(x, status = NULL, init = c(2200,300), gamma = 0, cval = 15, 
-    history = FALSE, sort = TRUE, rdmax = 350, \dots)
+glicko2(x, status = NULL, init = c(2200,300,0.15), gamma = 0, 
+    tau = 1.2, history = FALSE, sort = TRUE, rdmax = 350, \dots)
 }
 \arguments{
   \item{x}{A data frame containing four variables: (1) a numeric
@@ -23,15 +25,17 @@ glicko(x, status = NULL, init = c(2200,300), gamma = 0, cval = 15,
     system. If not \code{NULL}, this needs to be a data frame 
     in the form of the \code{ratings} component of the returned 
     list, containing variables named \code{Player}, \code{Rating},
-    \code{Deviation}, and optionally \code{Games}, \code{Win}, 
-	\code{Draw}, \code{Loss} and \code{Lag}, which are set to zero 
-    if not given.}
+    \code{Deviation}, \code{Volatility}, and optionally \code{Games}, 
+	\code{Win}, \code{Draw}, \code{Loss} and \code{Lag}, which are 
+	set to zero if not given.}
   \item{init}{The rating vector at which to initialize a new player 
-    not appearing in \code{status}. Must be a vector of length two
-    giving the initial rating and initial deviation respectively. 
-    If different initializations for different players are 
+    not appearing in \code{status}. Must be a vector of length three
+    giving the initial rating, initial deviation and initial volatility 
+	respectively. If different initializations for different players are 
     required, this can be done using \code{status}. The initial
-	deviation cannot be greater than \code{rdmax}.}
+	deviation cannot be greater than \code{rdmax}. The initial
+	volatility cannot be greater than \code{rdmax} divided by 
+	\code{400/log(10)}.}
   \item{gamma}{A player one advantage parameter; either a single
     value or a numeric vector equal to the number of rows in 
 	\code{x}. Positive values favour player one, while negative 
@@ -39,32 +43,34 @@ glicko(x, status = NULL, init = c(2200,300), gamma = 0, cval = 15,
 	of playing at home, or the advantage of playing white for chess. 
 	Note that this is not passed to \code{\link{predict.rating}}, 
 	which has its own \code{gamma} parameter.}
-  \item{cval}{The c parameter, which controls the increase in the
-    player deviations across time. Must be a single non-negative 
-    number.}
+  \item{tau}{The tau parameter, which controls the change in the
+    player volatility across time. Smaller values prevent the 
+	  volatility measures from changing by large amounts. Must be a 
+	  single number. Mark Glickman suggests a value between 0.3 and 1.2.
+	  A non-positive value can be specified, in which case the 
+	  volatilities are never updated.}
   \item{history}{If \code{TRUE} returns the entire history for each 
     period in the component \code{history} of the returned list.}
   \item{sort}{If \code{TRUE} sort the results by rating (highest
     to lowest). If \code{FALSE} sort the results by player.}
-  \item{rdmax}{The maximum value allowed for the rating deviation.}
+  \item{rdmax}{The maximum value allowed for the rating deviation.
+    The maximum value allowed for the volatility is \code{rdmax} 
+	divided by \code{400/log(10)}.}
   \item{\dots}{Not used.}
 }
 \details{
-  The Glicko rating system is a method for evaluating the skill 
-  of players. It is more complex than Elo but typically yields 
-  better predictions. 
+  The Glicko-2 rating system is a method for evaluating the skill 
+  of players. It is more complex than Glicko because it includes a 
+  volatility for each player. It requires a single parameter 
+  optimization for each player within each time period. We use the
+  R function \code{optimize} in preference to the root-finding 
+  approaches suggested in Glickman (2001) and Glickman (2013).
   Default values are roughly optimized for the chess data analyzed 
   in the file doc/ChessRatings.pdf, using the binomial deviance 
   criterion. A player one advantage parameter has been added to 
   the original definition in the reference. A player one advantage 
   parameter is also used for prediction purposes in 
   \code{\link{predict.rating}}.
-  In this implementation, rating deviances increase at the 
-  beginning of the updating period, and decrease at the end.
-  This is slightly different from the Glicko-2 implementation, 
-  where deviance increases for active players may occur at the end 
-  of the previous period. In both implementations there will be
-  an initial increase for existing but previously inactive players. 
 }
 \value{
   A list object of class \code{"rating"} with the following 
@@ -81,24 +87,33 @@ glicko(x, status = NULL, init = c(2200,300), gamma = 0, cval = 15,
     players, the column dimension is the time periods. 
     The third dimension gives different parameters.}
   \item{gamma}{The player one advantage parameter.}
-  \item{cval}{The c parameter.}
-  \item{type}{The character string \code{"Glicko"}.}
+  \item{tau}{The tau parameter.}
+  \item{type}{The character string \code{"Glicko-2"}.}
 }
 \references{
-  Glickman, M.E. (1999) 
-  Parameter estimation in large dynamic paired comparison experiments. 
-  J. R. Stat. Soc. Ser. C: Applied Statistics, 48(3), 377-394.
+  Glickman, M.E. (2001) 
+  Dynamic paired comparison models with stochastic variances. 
+  Journal of Applied Statistics, 28, 673-689.
+  
+  Glickman, M.E. (2013) 
+  Example of the Glicko-2 system.
 }
 
-\seealso{\code{\link{elo}}, \code{\link{glicko2}}, \code{\link{steph}}}
+\seealso{\code{\link{elo}}, \code{\link{glicko}}, \code{\link{steph}}}
 
 \examples{
+initstate <- data.frame(Player=1:4, Rating = c(1500,1400,1550,1700), 
+  Deviation = c(200,30,100,300), Volatility = 0.06)
+games <- data.frame(Week = 1, Payer1 = 1, Player2 = 2:4, Score = c(1,0,0))
+robj <- glicko2(games, status = initstate, tau = 0.5, sort = FALSE)
+print(robj, cols = 1:4, digits = 6)
+
 afl <- aflodds[,c(2,3,4,7)]
-robj <- glicko(afl)
+robj <- glicko2(afl)
 robj
 
-robj <- glicko(afl[afl$Week==1,])
-for(i in 2:max(afl$Week)) robj <- glicko(afl[afl$Week==i,], robj$ratings)
+robj <- glicko2(afl[afl$Week==1,])
+for(i in 2:max(afl$Week)) robj <- glicko2(afl[afl$Week==i,], robj$ratings)
 robj
 }
 \keyword{models}

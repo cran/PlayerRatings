@@ -12,8 +12,9 @@
 %\VignetteIndexEntry{Rating Football Teams}
 
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 
-\title{Rating Australian Rules Football Teams \\ With The \textbf{PlayerRatings} Package}
+\title{Rating Australian Rules Football Teams \\ With The \textbf{PlayerRatings} Package \\ \vspace*{0.5cm} \large Now updated for glicko-2}
 \author{Alec Stephenson}
 \maketitle
 
@@ -32,7 +33,7 @@ The \textbf{PlayerRatings} package implements iterative updating systems for rat
 
 The result of a game is considered to be a value in the interval $[0,1]$. For the football data, we only use information on wins, draws and losses, so a value of one represents a win for the home team, a value of zero represents a win for the away team, and a value of one half represents a draw. The status of the system is typically a small number of features, such as player ratings, player rating (standard) deviations, and the number of games played. The more computationally intensive (and often slightly more accurate) approaches of using the full gaming history via a time decay weighting function is not considered here.
 
-The functions \texttt{elo} and \texttt{fide} implement the Elo system (Elo, 1978), the function \texttt{glicko} implements the Glicko system (Glickman, 1999), and the function \texttt{steph} implements the Stephenson system as detailed in the appendix of \texttt{doc/ChessRatings.pdf}. We only use the \texttt{steph} function in this vignette.
+The functions \texttt{elo} and \texttt{fide} implement the Elo system (Elo, 1978), the functions \texttt{glicko} and \texttt{glicko2} implement the Glicko (Glickman, 1999) and Glicko-2 (Glickman, 2001) systems, and the function \texttt{steph} implements the Stephenson system as detailed in the appendix of \texttt{doc/ChessRatings.pdf}. We only use the \texttt{steph} and \texttt{glicko2} functions in this vignette.
 
 
 \section{Modelling and Prediction}
@@ -207,11 +208,66 @@ text(c(47,70,90),rep(2070,3),c("2010","2011","2012"),cex=1.5)
 \caption{Plots of ratings traces for eight football teams during mid-2010 to mid-2012.}
 \end{figure}
 
+\section{Glicko-2 Ratings}
+
+In the Glicko-2 rating system each team has a volatility parameter in addition to a deviation parameter. The calculation of the volatility requires a single parameter function optimization for each team within each time period, and will therefore be slower than Glicko or Stephenson.
+
+<<>>=
+library(PlayerRatings)
+afl <- aflodds[,c(2,3,4,7)]
+train <- afl[afl$Week < 100,]
+test <- afl[afl$Week >= 100 & afl$Week < 150,]
+valid <- afl[afl$Week >= 150,]
+sobj <- glicko2(train, history = TRUE)
+print(sobj, cols=1:4)
+@ 
+
+The traces of the ratings for the Glicko-2 system are given below. Glicko-2 is primarily designed for situations where a player (or team) plays several games in any single time period. This is not the case here, and therefore the volatilities show little movement. This can be seen from plotting the volatility traces using \texttt{plot(sobj, npl=16, which = "Volatility")}.   
+
+<<label=stabilize2>>=
+plot(sobj, npl=16)
+abline(v=c(27,55),lty=2,lwd=2,col="grey")
+text(c(14,42),c(2500,2500),c("2009","2010"),cex=1.5)
+@
+
+\begin{figure}[ht]
+\begin{center}
+<<fig=TRUE, echo=FALSE>>=
+<<stabilize2>>
+@
+\end{center}
+\vspace{-1cm}
+\caption{Plots of Glicko-2 ratings traces for the 16 teams during 2009-2010, beginning with no information.}
+\label{inffig2}
+\end{figure}
+
+The code in the previous section can be replicated for Glicko-2, with only minor alterations. The volatility parameter must be included in the status object and in the \texttt{init} vector. The Glicko-2 system parameter is called \texttt{tau}; smaller values of \texttt{tau} restrict the movement of the volatilities. If \texttt{tau} is zero or negative, then the volatilities are never updated. The code below provides an example.
+
+<<>>=
+st0 <- data.frame(Player=sort(unique(train$HomeTeam)), Rating=2200, 
+  Deviation=300, Volatility=0.15, stringsAsFactors=FALSE)
+sobj <- glicko2(train, st0, init = c(1900,300,0.15), tau = 1.2)
+pred <- NULL
+for(i in unique(test$Week)) {
+  testi <- test[test$Week == i,]
+  predi <- predict(sobj, testi, trat = c(1900,300), 
+    gamma = 30*trav(testi), thresh = 0.5)
+  pred <- c(pred, predi)
+  sobj <- glicko2(testi, sobj$ratings, init = c(1900,300,0.15), 
+    tau = 1.2)
+}
+rp <- table(Result=test$Score, Predictions=pred)
+rp
+round(100*(rp[1,2]+rp[nrow(rp),1])/sum(rp), 2)
+@
+
 \section*{Bibliography}
 
 Elo, A. (1978) \textit{The Rating of Chessplayers, Past and Present}. Arco. ISBN 0-668-04721-6
 
-Glickman, M. E. (1999) Parameter estimation in large dynamic paired comparison experiments. \textit{Applied Statistics}, \textbf{48}, 377--394. 
+Glickman, M. E. (1999) Parameter estimation in large dynamic paired comparison experiments. \textit{Applied Statistics}, \textbf{48}, 377--394.
+
+Glickman, M.E. (2001) Dynamic paired comparison models with stochastic variances. \textit{Journal of Applied Statistics}, \textbf{28}, 673-689.
 
 \end{document}
 

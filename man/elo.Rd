@@ -12,7 +12,7 @@ elo(x, status = NULL, init = 2200, gamma = 0, kfac = 27,
     history = FALSE, sort = TRUE, \dots)
 }
 \arguments{
-  \item{x}{A dataframe containing four variables: (1) a numeric
+  \item{x}{A data frame containing four variables: (1) a numeric
     vector denoting the time period in which the game took place
     (2) a numeric or character identifier for player one (3)
     a numeric or character identifier for player two and (4)
@@ -25,7 +25,7 @@ elo(x, status = NULL, init = 2200, gamma = 0, kfac = 27,
     list, containing variables named \code{Player}, \code{Rating},
     and optionally \code{Games}, \code{Win}, \code{Draw}, 
 	\code{Loss} and \code{Lag}, which are set to zero if not given.}
-  \item{init}{The rating at which to intialize a new player not
+  \item{init}{The rating at which to initialize a new player not
     appearing in \code{status}. Must be a single number. If
     different initializations for different players are required,
     this can be done using \code{status}.}
@@ -54,8 +54,9 @@ elo(x, status = NULL, init = 2200, gamma = 0, kfac = 27,
   the ratings, additional complexity is commonly introduced
   by adding a player one advantage parameter and by using different
   K factors. A player one advantage parameter has been added to the 
-  original definition in the reference. This is also used
-  for prediction purposes.
+  original definition in the reference. A player one advantage 
+  parameter is also used for prediction purposes in 
+  \code{\link{predict.rating}}.
 
   This implementation has a simple initialization, and allows the 
   K factor to depend on both the ratings and the number of games 
@@ -75,7 +76,7 @@ elo(x, status = NULL, init = 2200, gamma = 0, kfac = 27,
     since the player last played a game. This is equal to zero
     for players who played in the latest time period, and is
     also zero for players who have not yet played any games.}
-  \item{history}{A three dimentional array, or \code{NULL} if 
+  \item{history}{A three dimensional array, or \code{NULL} if 
     \code{history} is \code{FALSE}. The row dimension is the 
     players, the column dimension is the time periods. 
     The third dimension gives different parameters.}
@@ -89,7 +90,7 @@ elo(x, status = NULL, init = 2200, gamma = 0, kfac = 27,
   Arco. ISBN 0-668-04721-6.
 }
 \seealso{
-  \code{\link{fide}}, \code{\link{kfide}}
+  \code{\link{fide}}, \code{\link{glicko}}, \code{\link{kfide}}
 }
 \examples{
 afl <- aflodds[,c(2,3,4,7)]

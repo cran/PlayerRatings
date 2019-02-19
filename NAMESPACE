@@ -3,6 +3,7 @@ useDynLib(PlayerRatings, .registration = TRUE)
 export(elo,
        fide,
        glicko,
+	   glicko2,
        steph,
        metrics,
        kfide,
@@ -16,4 +17,4 @@ S3method(plot, rating)
 S3method(hist, rating)
 
 importFrom("graphics", "hist", "lines", "matplot", "par", "plot")
-
+importFrom("stats", "optimize")

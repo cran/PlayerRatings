@@ -6,6 +6,9 @@ void elo_c(int *np, int *nr, int *white, int *black, double *score,
 
 void glicko_c(int *np, int *nr, int *white, int *black, double *score, 
   double *crats, double *gdevs, double *gamma, double *dscore);
+  
+void glicko2_c(int *np, int *nr, int *white, int *black, double *score, 
+              double *crats, double *gdevs, double *gamma, double *dscore);
 
 void stephenson_c(int *np, int *nr, int *white, int *black, double *score, 
   double *crats, double *gdevs, double *gamma, double *bval, double *dscore);
@@ -57,6 +60,7 @@ void glicko_c(int *np, int *nr, int *white, int *black, double *score,
     dval[k] = 0;
   }  
 
+
   for(k=0;k<*nr;k++) {
     ascore[white[k]] = ascore[white[k]] + score[k];
     escorek = 1/(1 + R_pow(10,(gdevs[black[k]] * (crats[black[k]] - crats[white[k]] - gamma[k]))/400));
@@ -68,6 +72,42 @@ void glicko_c(int *np, int *nr, int *white, int *black, double *score,
     escorek = 1/(1 + R_pow(10,(gdevs[white[k]] * (crats[white[k]] - crats[black[k]] + gamma[k]))/400));
     escore[black[k]] = escore[black[k]] + escorek;
     dval[black[k]] = dval[black[k]] + qv2 * R_pow(gdevs[white[k]],2) * escorek * (1-escorek);
+    dscore[black[k]] = dscore[black[k]] + gdevs[white[k]] * (1 - score[k] - escorek);
+  }
+  for(k=0;k<*np;k++) dscore[k + *np] = dval[k];
+}
+
+void glicko2_c(int *np, int *nr, int *white, int *black, double *score, 
+              double *crats, double *gdevs, double *gamma, double *dscore)
+{
+  
+  double *escore;
+  double *ascore;
+  double *dval;
+  double escorek;
+  int k;
+  
+  escore = (double *)R_alloc(*np, sizeof(double));
+  ascore = (double *)R_alloc(*np, sizeof(double));
+  dval = (double *)R_alloc(*np, sizeof(double));
+  
+  for(k=0;k<*np;k++) {  
+    escore[k] = 0;
+    ascore[k] = 0;
+    dval[k] = 0;
+  }  
+  
+  for(k=0;k<*nr;k++) {
+    ascore[white[k]] = ascore[white[k]] + score[k];
+    escorek = 1/(1 + exp(gdevs[black[k]] * (crats[black[k]] - crats[white[k]] - gamma[k])));
+    escore[white[k]] = escore[white[k]] + escorek;
+    dval[white[k]] = dval[white[k]] + R_pow(gdevs[black[k]],2) * escorek * (1-escorek);
+    dscore[white[k]] = dscore[white[k]] + gdevs[black[k]] * (score[k] - escorek);
+    
+    ascore[black[k]] = ascore[black[k]] + 1 - score[k];
+    escorek = 1/(1 + exp(gdevs[white[k]] * (crats[white[k]] - crats[black[k]] + gamma[k])));
+    escore[black[k]] = escore[black[k]] + escorek;
+    dval[black[k]] = dval[black[k]] + R_pow(gdevs[white[k]],2) * escorek * (1-escorek);
     dscore[black[k]] = dscore[black[k]] + gdevs[white[k]] * (1 - score[k] - escorek);
   }
   for(k=0;k<*np;k++) dscore[k + *np] = dval[k];

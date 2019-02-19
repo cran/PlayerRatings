@@ -7,8 +7,7 @@
   The \code{aflodds} data frame has 675 rows and 9 variables. It
   shows the results and betting odds for 675 Australian football 
   games played by 18 teams from 26th March 2009 until 24th June
-  2012. The data is subject to alteration and may be appended to
-  at a later date.
+  2012.
 }
 \format{
   This data frame contains the following columns:
