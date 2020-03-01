@@ -17,11 +17,11 @@
   \item{which}{The variable to be plotted.}
   \item{players}{If not \code{NULL}, should be a vector of player
     identifiers to explicitly select players to be plotted.}
-  \item{t0}{The time at which to begin. Note that unless players
-    are specified explicitly, players who do not play at time
+  \item{t0}{The time index at which to begin. Note that unless players
+    are specified explicitly, players who do not play at time index
     \code{t0} will not be selected for the plot. Can also be a
     vector of length two, in which case the second value is the
-    time at which to end.}
+    time index at which to end.}
   \item{tv}{If not \code{NULL}, then a vector of values to be used on the
     x-axis instead of the time index.}
   \item{npl}{The number of players to select.}
@@ -50,5 +50,9 @@
 afl <- aflodds[,c(2,3,4,7)]
 robj <- steph(afl, history=TRUE)
 plot(robj)
+
+robj <- elom(riichi, history = TRUE)
+pl <- robj$ratings$Player[robj$ratings$Games >= 80]
+plot(robj, players = pl)
 }
 \keyword{hplot}

@@ -4,6 +4,9 @@
 void elo_c(int *np, int *nr, int *white, int *black, double *score, 
   double *crats, double *gamma, double *dscore);
 
+void elom_c(int *np, int *nr, int *nn, int *player, double *score, 
+            double *crats, double *dscore);
+
 void glicko_c(int *np, int *nr, int *white, int *black, double *score, 
   double *crats, double *gdevs, double *gamma, double *dscore);
   
@@ -36,6 +39,44 @@ void elo_c(int *np, int *nr, int *white, int *black, double *score,
     escore[black[k]] = escore[black[k]] + 
       1/(1 + R_pow(10,(crats[white[k]] - crats[black[k]] + gamma[k])/400)); 
   }
+  for(k=0;k<*np;k++) dscore[k] = ascore[k] - escore[k];
+}
+
+void elom_c(int *np, int *nr, int *nn, int *player, double *score, 
+           double *crats, double *dscore)
+{
+  double *escore;
+  double *ascore;
+  double avetab;
+  int k,p,ntp;
+  
+  escore = (double *)R_alloc(*np, sizeof(double));
+  ascore = (double *)R_alloc(*np, sizeof(double));
+  
+  for(k=0;k<*np;k++) {  
+    escore[k] = 0;
+    ascore[k] = 0;
+  }  
+  
+  for(k=0;k<*nr;k++) {
+    avetab = 0;
+    ntp = 0;
+    for(p=0;p<*nn;p++) {
+      if(player[*nn*k+p] != -1) {
+        avetab = avetab + crats[player[*nn*k+p]];
+        ntp++;
+      }
+    }
+    avetab = avetab / ntp;
+    for(p=0;p<*nn;p++) {
+      if(player[*nn*k+p] != -1) {
+        ascore[player[*nn*k+p]] = ascore[player[*nn*k+p]] + score[*nn*k+p];
+        escore[player[*nn*k+p]] = escore[player[*nn*k+p]] + 
+          (crats[player[*nn*k+p]] - avetab)/40;
+      }
+    }
+  }
+    
   for(k=0;k<*np;k++) dscore[k] = ascore[k] - escore[k];
 }
 

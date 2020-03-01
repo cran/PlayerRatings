@@ -41,5 +41,11 @@ hist(robj, xlim = c(1900,2500), density=TRUE)
 afl <- aflodds[,c(2,3,4,7)]
 robj <- steph(afl, history=TRUE)
 hist(robj, history=TRUE, xlim = c(1900,2500), density=TRUE)
+
+robj <- elom(riichi)
+hist(robj, xlim = c(1100,1900))
+
+robj <- elom(riichi, history=TRUE)
+hist(robj, history=TRUE, xlim = c(1100,1900))
 }
 \keyword{hplot}
